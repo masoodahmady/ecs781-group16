@@ -1,47 +1,52 @@
 from flask import Flask, jsonify, json, request
-import sqlalchemy
-from sqlalchemy import create_engine
-from sqlalchemy import Table, Column, Integer, String, MetaData, Float
+from flask_sqlalchemy import SQLAlchemy
 from pycoingecko import CoinGeckoAPI
+import dateparser
+from datetime import datetime
 
-engine = create_engine('sqlite:///app.db', echo=True)
 app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
+db = SQLAlchemy(app)
 
-def get_buying_table():
-    conn = engine.connect()
-    meta = MetaData()
+class BuyingRecord(db.Model):
+    id = db.Column('id', db.Integer, primary_key=True)
+    transaction_date = db.Column('transaction_date', db.DateTime)
+    coingecko_id = db.Column('coingecko_id', db.String)
+    symbol = db.Column('symbol', db.String)
+    amount = db.Column('amount', db.Float)
+    price_usd = db.Column('price_usd', db.Float)
+    
+    def __repr__(self):
+        return {
+            'id': self.id,
+            'transaction_date': self.transaction_date,
+            'coingecko_id': self.coingecko_id,
+            'symbol': self.symbol,
+            'amount': self.amount,
+            'price_usd': self.price_usd
+        }
 
-    buying_history = Table(
-        'buying_history', meta,
-        Column('id', Integer, primary_key=True),
-        Column('coingecko_id', String),
-        Column('symbol', String),
-        Column('amount', Float),
-        Column('price_usd', Float)
-    )
 
-    meta.create_all(engine, checkfirst=True)
-    return conn, buying_history
+class SellingRecord(db.Model):
+    id = db.Column('id', db.Integer, primary_key=True)
+    transaction_date = db.Column('transaction_date', db.DateTime)
+    coingecko_id = db.Column('coingecko_id', db.String)
+    symbol = db.Column('symbol', db.String)
+    amount = db.Column('amount', db.Float)
+    price_usd = db.Column('price_usd', db.Float)
+    
+    def __repr__(self):
+        return {
+            'id': self.id,
+            'transaction_date': self.transaction_date,
+            'coingecko_id': self.coingecko_id,
+            'symbol': self.symbol,
+            'amount': self.amount,
+            'price_usd': self.price_usd
+        }
 
-def get_selling_table():
-    conn = engine.connect()
-    meta = MetaData()
 
-    selling_history = Table(
-        'selling_history', meta,
-        Column('id', Integer, primary_key=True),
-        Column('coingecko_id', String),
-        Column('symbol', String),
-        Column('amount', Float),
-        Column('price_usd', Float)
-    )
-
-    meta.create_all(engine, checkfirst=True)
-    return conn, selling_history
-
-def init_database():
-    get_buying_table()
-    get_selling_table()
+db.create_all()
 
 def coin_id_to_symbol(coin_id):
     coingecko = CoinGeckoAPI()
@@ -76,6 +81,20 @@ def get_portfolio():
     # TODO: Calculate current portfolio position by deducting sold amount from buying records
     pass
     
+@app.route('/buy', methods=['GET'])
+def get_buy_records():
+
+    data = []
+    for row in BuyingRecord.query.all():
+        data.append({
+            'id': row.id,
+            'coingecko_id': row.coingecko_id,
+            'symbol': row.symbol,
+            'amount': row.amount,
+            'price_usd': row.price_usd
+        })
+    return jsonify(data), 201
+    
 # Create a buying record
 @app.route('/buy', methods=['POST'])
 def create_buy_record():
@@ -91,18 +110,24 @@ def create_buy_record():
     
     symbol = coin_id_to_symbol(request.json['coin_id'])
 
-    conn, buying_history = get_buying_table()
-    ins = sqlalchemy.insert(buying_history).values(
+    if 'transaction_date' not in request.json:
+        transaction_date = datetime.now()
+    else:
+        transaction_date = dateparser.parse(request.json['transaction_date'])
+
+
+    new_records = BuyingRecord(
         coingecko_id=request.json['coin_id'],
+        transaction_date=transaction_date,
         symbol=symbol,
         amount=request.json['amount'],
         price_usd=request.json['price_usd']
-        )
-    result = conn.execute(ins)
+    )
+
+    db.session.add(new_records)
+    db.session.commit()
 
     return jsonify({'message': str(result) }), 201
-
-
 
 # Create a selling reocrd
 @app.route('/sell', methods=['POST'])
@@ -143,5 +168,4 @@ def delete_sell_record():
 
 if __name__ == "__main__":
     #app.run(ssl_context=('adhoc'))
-    init_database()
     app.run()
