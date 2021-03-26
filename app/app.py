@@ -4,10 +4,12 @@ from pycoingecko import CoinGeckoAPI
 import dateparser
 from datetime import datetime
 import pymysql
+import os
 
 app = Flask(__name__)
 #app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
-app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+pymysql://mydb_user:<pass>@database-2.c7dbcqwktl7s.us-east-1.rds.amazonaws.com/mydb"
+dbpass = os.environ['SQLALCHEMY_DATABASE_URI_PASSWORD']
+app.config['SQLALCHEMY_DATABASE_URI'] = f"mysql+pymysql://mydb_user:{dbpass}@database-2.c7dbcqwktl7s.us-east-1.rds.amazonaws.com/mydb"
 db = SQLAlchemy(app)
 
 class BuyingRecord(db.Model):
