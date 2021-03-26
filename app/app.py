@@ -3,16 +3,18 @@ from flask_sqlalchemy import SQLAlchemy
 from pycoingecko import CoinGeckoAPI
 import dateparser
 from datetime import datetime
+import pymysql
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
+#app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+pymysql://mydb_user:<pass>@database-2.c7dbcqwktl7s.us-east-1.rds.amazonaws.com/mydb"
 db = SQLAlchemy(app)
 
 class BuyingRecord(db.Model):
     id = db.Column('id', db.Integer, primary_key=True)
     transaction_date = db.Column('transaction_date', db.DateTime)
-    coingecko_id = db.Column('coingecko_id', db.String)
-    symbol = db.Column('symbol', db.String)
+    coingecko_id = db.Column('coingecko_id', db.String(32))
+    symbol = db.Column('symbol', db.String(8))
     amount = db.Column('amount', db.Float)
     price_usd = db.Column('price_usd', db.Float)
     
@@ -29,8 +31,8 @@ class BuyingRecord(db.Model):
 class SellingRecord(db.Model):
     id = db.Column('id', db.Integer, primary_key=True)
     transaction_date = db.Column('transaction_date', db.DateTime)
-    coingecko_id = db.Column('coingecko_id', db.String)
-    symbol = db.Column('symbol', db.String)
+    coingecko_id = db.Column('coingecko_id', db.String(32))
+    symbol = db.Column('symbol', db.String(8))
     amount = db.Column('amount', db.Float)
     price_usd = db.Column('price_usd', db.Float)
     
