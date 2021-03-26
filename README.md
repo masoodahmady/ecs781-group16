@@ -11,7 +11,9 @@ It is a fictional cryptocurrency portfolio tracker built using Flask and SQLAlch
 
 ## Instructions
 ### Requirements
-The following environment should be set at the host:
+The following environment should be set at the host.
+
+This is definitely not the best practice to save a database password. But due to limited time, and considering it is a non-production application, this is not as bad as doing the same in a production environment.
 ```bash
 export SQLALCHEMY_DATABASE_URI_PASSWORD=<database password>
 ```
