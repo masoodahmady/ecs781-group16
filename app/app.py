@@ -8,8 +8,11 @@ import os
 
 app = Flask(__name__)
 #app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
+dbhost = os.environ['SQLALCHEMY_DATABASE_URI_HOST']
 dbpass = os.environ['SQLALCHEMY_DATABASE_URI_PASSWORD']
-app.config['SQLALCHEMY_DATABASE_URI'] = f"mysql+pymysql://mydb_user:{dbpass}@database-2.c7dbcqwktl7s.us-east-1.rds.amazonaws.com/mydb"
+dbname = 'mydb'
+
+app.config['SQLALCHEMY_DATABASE_URI'] = f"mysql+pymysql://mydb_user:{dbpass}@{dbhost}/{dbname}"
 db = SQLAlchemy(app)
 
 class BuyingRecord(db.Model):

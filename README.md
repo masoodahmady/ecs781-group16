@@ -16,6 +16,7 @@ The following environment should be set at the host.
 This is definitely not the best practice to save a database password. But due to limited time, and considering it is a non-production application, this is not as bad as doing the same in a production environment.
 ```bash
 export SQLALCHEMY_DATABASE_URI_PASSWORD=<database password>
+export SQLALCHEMY_DATABASE_URI_HOST=<MySQL database hostname>
 ```
 
 ### Running the Application Locally
@@ -40,5 +41,5 @@ docker build . --tag=ecs781group16:<version>
 
 * To run the application on Docker
 ```bash
-docker run -p <host port>:5000 --env SQLALCHEMY_DATABASE_URI_PASSWORD ecs781group16:<version>
+docker run -p <host port>:5000 --env SQLALCHEMY_DATABASE_URI_PASSWORD --env SQLALCHEMY_DATABASE_URI_HOST ecs781group16:<version>
 ```
