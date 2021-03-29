@@ -10,9 +10,12 @@ app = Flask(__name__)
 
 # Let the Flask app to run on a MySQL database
 dbhost = os.environ['SQLALCHEMY_DATABASE_URI_HOST']
-dbpass = os.environ['SQLALCHEMY_DATABASE_URI_PASSWORD']
-dbname = 'mydb'
-app.config['SQLALCHEMY_DATABASE_URI'] = f"mysql+pymysql://mydb_user:{dbpass}@{dbhost}/{dbname}"
+dbuser = os.environ['SQLALCHEMY_DATABASE_USERNAME']
+dbpass = os.environ['SQLALCHEMY_DATABASE_PASSWORD']
+dbname = os.environ['SQLALCHEMY_DATABASE']
+app.config['SQLALCHEMY_DATABASE_URI'] = f"mysql+pymysql://{dbuser}:{dbpass}@{dbhost}/{dbname}"
+
+
 
 # The following line is commented, as it was used to run the application
 # on a local SQLite database for local testing
