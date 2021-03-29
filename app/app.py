@@ -7,14 +7,20 @@ import pymysql
 import os
 
 app = Flask(__name__)
-#app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
+
+# Let the Flask app to run on a MySQL database
 dbhost = os.environ['SQLALCHEMY_DATABASE_URI_HOST']
 dbpass = os.environ['SQLALCHEMY_DATABASE_URI_PASSWORD']
 dbname = 'mydb'
-
 app.config['SQLALCHEMY_DATABASE_URI'] = f"mysql+pymysql://mydb_user:{dbpass}@{dbhost}/{dbname}"
+
+# The following line is commented, as it was used to run the application
+# on a local SQLite database for local testing
+# app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
+
 db = SQLAlchemy(app)
 
+# Define the table structure of BuyingRecord
 class BuyingRecord(db.Model):
     id = db.Column('id', db.Integer, primary_key=True)
     transaction_date = db.Column('transaction_date', db.DateTime)
@@ -33,6 +39,7 @@ class BuyingRecord(db.Model):
             'price_usd': self.price_usd
         }
 
+# Define the table structure of SellingRecord
 class SellingRecord(db.Model):
     id = db.Column('id', db.Integer, primary_key=True)
     transaction_date = db.Column('transaction_date', db.DateTime)
@@ -51,9 +58,23 @@ class SellingRecord(db.Model):
             'price_usd': self.price_usd
         }
 
+# When the Flask app is started, it will create the tables if they don't already exist
 db.create_all()
 
 def coin_id_to_symbol(coin_id):
+    """
+    This method takes the ID of a cryptocurrency on CoinGecko website,
+    and returns the tradining symbol of the cryptocurrency.
+    
+    A list of supported IDs on CoinGecko can be retrieved using the following GET API.
+    https://api.coingecko.com/api/v3/coins/list?include_platform=false
+    
+    Parameters:
+    coin_id (str): The ID of a cryptocurrency on CoinGecko website, e.g. bitcoin.
+    
+    Returns:
+    str: Trading symbol of the cryptocurrency, e.g. BTC.
+    """
     coingecko = CoinGeckoAPI()
     
     data = coingecko.get_coin_by_id(coin_id,
@@ -66,8 +87,11 @@ def coin_id_to_symbol(coin_id):
     return data['symbol'].upper()
 
 @app.route("/")
-def hello():
-    return "Hello World!"
+def main():
+    """
+    Returns the current portfolio position
+    """
+    return get_portfolio()
 
 # Get the latest price of a given coin
 @app.route('/coins/<coin_id>', methods=['GET'])
@@ -83,9 +107,16 @@ def get_coin_by_id(coin_id):
 # Get current portfolio position
 @app.route('/portfolio', methods=['GET'])
 def get_portfolio():
+    """
+    Returns the current portfolio position
+    """
+    
     # Calculate current portfolio position by deducting sold amount from buying records
     coins = {}
+    
     for row in BuyingRecord.query.all():
+        # First retrieves all buying record and calculate the total amount and
+        # average cost of each coin
         if row.coingecko_id not in coins:
             coins[row.coingecko_id] = {
                 'amount': row.amount,
@@ -104,6 +135,8 @@ def get_portfolio():
                 coins[row.coingecko_id]['amount']
     
     for row in SellingRecord.query.all():
+        # Then retrieves all selling records to deduct sold coins
+        # from the bought coins and update the average cost
         if row.coingecko_id not in coins:
             coins[row.coingecko_id] = {
                 'amount': -row.amount,
@@ -121,6 +154,8 @@ def get_portfolio():
                 abs(coins[row.coingecko_id]['cost_usd'] /
                     coins[row.coingecko_id]['amount'])
     
+    # Retrieves the latest coin prices from CoinGecko
+    # and calculates the current value
     coingecko = CoinGeckoAPI()
     for k, v in coins.items():
         coin_current_price = coingecko.get_price(k, 'usd')
@@ -133,6 +168,7 @@ def get_portfolio():
 @app.route('/buy', methods=['GET'])
 def get_buy_records():
 
+    # Retrieves all buying records from the database
     data = []
     for row in BuyingRecord.query.all():
         data.append({
@@ -290,5 +326,5 @@ def delete_sell_record():
 
 
 if __name__ == "__main__":
+    # Run the Flask app on a dummy SSL cert
     app.run(ssl_context=('adhoc'), host='0.0.0.0', port=5000)
-    #app.run(host='0.0.0.0', port=5000)
