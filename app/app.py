@@ -166,7 +166,7 @@ def get_portfolio():
         coins[k]['current_value_usd'] = coin_current_price[k]['usd'] * \
             coins[k]['amount']
         
-    return coins, 201
+    return coins
 
 @app.route('/buy', methods=['GET'])
 def get_buy_records():
