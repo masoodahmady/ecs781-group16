@@ -181,7 +181,7 @@ def get_buy_records():
             'amount': row.amount,
             'price_usd': row.price_usd
         })
-    return jsonify(data), 201
+    return jsonify(data)
     
 @app.route('/sell', methods=['GET'])
 def get_sell_records():
