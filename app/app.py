@@ -296,11 +296,42 @@ def get_sell_record(record_id):
 
 # Update a buying record
 @app.route('/buy/<record_id>', methods=['PUT'])
+
 def update_buy_record(record_id):
-    # TODO: Check if the given record_id exists, if not return an error.
+    #masood
+    newamount = request.json['amount']
+    newprice_usd = request.json['price_usd']
+    newsymbol = request.json['symbol']
+    newcoingecko_id = request.json['coingecko_id']
+
     
-    # TODO: Update the record of the given record_id
-    pass
+    data = []
+    for row in BuyingRecord.query.filter_by(id=record_id).all():
+        data.append({
+        'id': row.id,
+        'coingecko_id': row.coingecko_id,
+        'symbol': row.symbol,
+        'amount': row.amount,
+        'price_usd': row.price_usd
+    })
+
+    
+    BuyingRecord.query.filter_by(id=record_id).update({'amount': newamount, 'price_usd': newprice_usd, 'symbol': newsymbol, 'coingecko_id': newcoingecko_id} )
+
+    db.session.commit()
+
+    data = []
+    for row in BuyingRecord.query.filter_by(id=record_id).all():
+        data.append({
+        'id': row.id,
+        'coingecko_id': row.coingecko_id,
+        'symbol': row.symbol,
+        'amount': row.amount,
+        'price_usd': row.price_usd
+    })
+    print("data", data[0])
+    
+    return jsonify(data), 201
 
 # Update a selling record 
 @app.route('/sell/<record_id>', methods=['PUT'])
@@ -308,7 +339,42 @@ def update_sell_record(record_id):
     # TODO: Check if the given record_id exists, if not return an error.
 
     # TODO: Update the record of the given record_id
-    pass
+    #masood
+    newamount = request.json['amount']
+    newprice_usd = request.json['price_usd']
+    newsymbol = request.json['symbol']
+    newcoingecko_id = request.json['coingecko_id']
+
+    
+
+    data = []
+    for row in SellingRecord.query.filter_by(id=record_id).all():
+        data.append({
+        'id': row.id,
+        'coingecko_id': row.coingecko_id,
+        'symbol': row.symbol,
+        'amount': row.amount,
+        'price_usd': row.price_usd
+    })
+
+    
+    SellingRecord.query.filter_by(id=record_id).update({'amount': newamount, 'price_usd': newprice_usd, 'symbol': newsymbol, 'coingecko_id': newcoingecko_id} )
+
+    db.session.commit()
+
+    data = []
+    for row in SellingRecord.query.filter_by(id=record_id).all():
+        data.append({
+        'id': row.id,
+        'coingecko_id': row.coingecko_id,
+        'symbol': row.symbol,
+        'amount': row.amount,
+        'price_usd': row.price_usd
+    })
+
+    print("data", data[0])
+
+    return jsonify(data), 201
 
 # Delete a buying record
 @app.route('/buy/<record_id>', methods=['DELETE'])
